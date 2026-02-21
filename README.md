@@ -126,7 +126,6 @@ If a map is fully black:
 ### 🟣 Normal Maps
 - Normal maps are baked in **RGB**
 - Purple / magenta colors are expected
-- Output is compatible with Roblox
 - (Y-flip is not applied by default)
 
 ---
@@ -139,7 +138,7 @@ If a map is fully black:
    - Material uses Principled BSDF
    - Object is properly UV unwrapped
 4. Switch to **Render Properties**
-5. Open **Simple PBR Exporter for Roblox**
+5. Open **Simple PBR Exporter**
 6. Set texture resolution
 7. Click **Export**
 
