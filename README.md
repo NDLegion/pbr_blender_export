@@ -165,7 +165,6 @@ If a map is fully black:
 
 ## 📄 License
 
-MIT License  
 Free to use, modify, and redistribute.
 
 ---
