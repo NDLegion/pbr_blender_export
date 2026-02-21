@@ -1,8 +1,7 @@
-# Simple PBR Exporter for Roblox (Blender Add-on)
+# Simple PBR Exporter (Blender Add-on)
 
 A lightweight Blender add-on for baking and exporting **PBR textures**  
-(**BaseColor, Normal, Roughness, Metallic**) from **Principled BSDF** materials,  
-optimized for direct use in **Roblox**.
+(**BaseColor, Normal, Roughness, Metallic**) from **Principled BSDF** materials.
 
 The add-on is designed to be minimal, predictable, and technically correct,  
 without relying on external tools or complex material setups.
