@@ -4,7 +4,7 @@ This plugin is designed to improve the export process from blender to any extern
 
 How to install this plugin
 
-To install this plugin download PBR_Exporter.py, install it from the Add-ons panel in blender's preferences, and enable it. 
+To install this plugin download "pbr.py" , install it from the Add-ons panel in blender's preferences, and enable it. 
 
 How to use this plugin
 
