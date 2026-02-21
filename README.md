@@ -26,12 +26,12 @@ without relying on external tools or complex material setups.
 
 For an object named `MyMesh`, the following files are generated:
 
-export/
-└── MyMesh/
-├── MyMesh_BaseColor.png
-├── MyMesh_Normal.png
-├── MyMesh_Roughness.png
-└── MyMesh_Metallic.png
+`export/`<br>
+`└── MyMesh/`<br>
+`├── MyMesh_BaseColor.png`<br>
+`├── MyMesh_Normal.png`<br>
+`├── MyMesh_Roughness.png`<br>
+`└── MyMesh_Metallic.png`
 
 ---
 
