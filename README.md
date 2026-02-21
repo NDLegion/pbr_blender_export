@@ -1,10 +1,10 @@
 Blender 5.0+ Material Exporter
 
-This plugin is designed to improve the export process from blender to any external software by automaticly baking standard PBR texture maps, meshes, and other maps that are useful for texturing.
+This plugin is designed to improve the export process from blender to any external software by automaticly baking standard PBR texture maps that are useful for texturing.
 
 How to install this plugin
 
-To install this plugin download PBR_Exporter.py, install it from the Add-ons panel in blender's preferences, and enable it.
+To install this plugin download PBR_Exporter.py, install it from the Add-ons panel in blender's preferences, and enable it. 
 
 How to use this plugin
 
