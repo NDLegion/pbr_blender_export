@@ -1,8 +1,8 @@
 bl_info = {
-    "name": "PBR Export for Roblox",
+    "name": "Simple PBR Exporter",
     "author": "NDLegion",
-    "version": (1, 3, 1),
-    "blender": (5, 0, 0),
+    "version": (1, 5, 2),
+    "blender": (4, 0, 0),
     "location": "Render Properties",
     "description": "Bake and export PBR textures (BaseColor, Normal, Roughness, Metallic) for Roblox",
     "category": "Render",
@@ -11,9 +11,9 @@ bl_info = {
 import bpy
 from pathlib import Path
 
-# ---------------------------
+# --------------------------------------------------
 # UTILS
-# ---------------------------
+# --------------------------------------------------
 
 def safe_name(name: str) -> str:
     forbidden = '<>:"/\\|?*'
@@ -22,8 +22,15 @@ def safe_name(name: str) -> str:
     return name.strip()
 
 
-def ensure_cycles():
-    bpy.context.scene.render.engine = 'CYCLES'
+def ensure_cycles(operator=None):
+    scene = bpy.context.scene
+    if scene.render.engine != 'CYCLES':
+        scene.render.engine = 'CYCLES'
+        if operator:
+            operator.report(
+                {'INFO'},
+                "Render engine switched to Cycles (required for baking)"
+            )
 
 
 def active_mesh_object():
@@ -33,12 +40,12 @@ def active_mesh_object():
     return obj
 
 
-def prepare_image(name, size, folder):
+def prepare_image(name, size, folder, alpha=False):
     img = bpy.data.images.new(
         name=name,
         width=size,
         height=size,
-        alpha=False
+        alpha=alpha
     )
     img.filepath_raw = str(folder / f"{name}.png")
     img.file_format = 'PNG'
@@ -54,7 +61,6 @@ def set_active_image_node(obj, image):
             mat.use_nodes = True
 
         nodes = mat.node_tree.nodes
-
         img_node = nodes.new("ShaderNodeTexImage")
         img_node.image = image
         nodes.active = img_node
@@ -81,7 +87,8 @@ def restore_links(backup):
 
 def bake_value_map(obj, input_name, export_path, size, tex_name):
     """
-    Bake single-channel map (Roughness, Metallic) directly from Principled BSDF input.
+    Bake single-channel map (Roughness or Metallic)
+    from Principled BSDF input using Emission.
     """
     backup = backup_links(obj)
 
@@ -95,6 +102,7 @@ def bake_value_map(obj, input_name, export_path, size, tex_name):
 
         principled = None
         output = None
+
         for n in nodes:
             if n.type == 'BSDF_PRINCIPLED':
                 principled = n
@@ -111,29 +119,32 @@ def bake_value_map(obj, input_name, export_path, size, tex_name):
 
     img = prepare_image(tex_name, size, export_path)
     set_active_image_node(obj, img)
+
     bpy.context.scene.render.bake.use_pass_direct = False
     bpy.context.scene.render.bake.use_pass_indirect = False
     bpy.context.scene.render.bake.use_pass_color = True
+
     bpy.ops.object.bake(type='EMIT')
     img.save()
 
     restore_links(backup)
 
 
-# ---------------------------
+# --------------------------------------------------
 # OPERATOR
-# ---------------------------
+# --------------------------------------------------
 
 class SIMPLE_PBR_OT_export(bpy.types.Operator):
     bl_idname = "render.simple_pbr_export"
     bl_label = "Export PBR Textures"
+    bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
-        ensure_cycles()
+        ensure_cycles(self)
 
         obj = active_mesh_object()
         if not obj:
-            self.report({'ERROR'}, "Select a mesh object")
+            self.report({'ERROR'}, "Active object must be a mesh")
             return {'CANCELLED'}
 
         if not obj.material_slots:
@@ -151,7 +162,7 @@ class SIMPLE_PBR_OT_export(bpy.types.Operator):
         context.view_layer.objects.active = obj
 
         # ---------------- BaseColor ----------------
-        img = prepare_image(f"{safe_obj_name}_BaseColor", size, export_root)
+        img = prepare_image(f"{safe_obj_name}_BaseColor", size, export_root, alpha=False)
         set_active_image_node(obj, img)
 
         bpy.context.scene.render.bake.use_pass_direct = False
@@ -164,28 +175,39 @@ class SIMPLE_PBR_OT_export(bpy.types.Operator):
         # ---------------- Normal ----------------
         img = prepare_image(f"{safe_obj_name}_Normal", size, export_root)
         set_active_image_node(obj, img)
-        bpy.context.scene.render.bake.use_pass_direct = True
-        bpy.context.scene.render.bake.use_pass_indirect = True
+
         bpy.context.scene.render.bake.use_pass_color = False
         bpy.ops.object.bake(type='NORMAL')
         img.save()
 
         # ---------------- Roughness ----------------
-        bake_value_map(obj, "Roughness", export_root, size, f"{safe_obj_name}_Roughness")
+        bake_value_map(
+            obj,
+            "Roughness",
+            export_root,
+            size,
+            f"{safe_obj_name}_Roughness"
+        )
 
         # ---------------- Metallic ----------------
-        bake_value_map(obj, "Metallic", export_root, size, f"{safe_obj_name}_Metallic")
+        bake_value_map(
+            obj,
+            "Metallic",
+            export_root,
+            size,
+            f"{safe_obj_name}_Metallic"
+        )
 
-        self.report({'INFO'}, f"PBR exported to {export_root}")
+        self.report({'INFO'}, f"PBR textures exported to {export_root}")
         return {'FINISHED'}
 
 
-# ---------------------------
+# --------------------------------------------------
 # UI
-# ---------------------------
+# --------------------------------------------------
 
 class SIMPLE_PBR_PT_panel(bpy.types.Panel):
-    bl_label = "Simple PBR Exporter for Roblox"
+    bl_label = "Simple PBR Exporter"
     bl_idname = "RENDER_PT_simple_pbr_exporter"
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
@@ -197,9 +219,9 @@ class SIMPLE_PBR_PT_panel(bpy.types.Panel):
         layout.operator("render.simple_pbr_export", icon='EXPORT')
 
 
-# ---------------------------
+# --------------------------------------------------
 # REGISTER
-# ---------------------------
+# --------------------------------------------------
 
 def register():
     bpy.utils.register_class(SIMPLE_PBR_OT_export)
@@ -207,7 +229,7 @@ def register():
 
     bpy.types.Scene.simple_pbr_resolution = bpy.props.IntProperty(
         name="Texture Resolution",
-        default=1024,
+        default=2048,
         min=256,
         max=8192
     )
