@@ -19,7 +19,6 @@ without relying on external tools or complex material setups.
 - Automatically switches render engine to **Cycles**
 - Works with **multiple material slots**
 - No lighting baked into BaseColor
-- Roblox-compatible output
 
 ---
 
